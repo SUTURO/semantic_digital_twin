@@ -1474,8 +1474,8 @@ class World:
         root_chain, common_ancestor, tip_chain = (
             self.compute_split_chain_of_kinematic_structure_entities(root, tip)
         )
-        root_chain.append(common_ancestor[0])
-        tip_chain.insert(0, common_ancestor[0])
+        root_chain = root_chain + [common_ancestor[0]]
+        tip_chain = [common_ancestor[0]] + tip_chain
 
         root_connections = [
             self.get_connection(root_chain[i + 1], root_chain[i])
@@ -1608,6 +1608,18 @@ class World:
         :return: Transformation matrix representing the relative pose of the tip KinematicStructureEntity with respect to the root KinematicStructureEntity.
         """
         return self._forward_kinematic_manager.compute(root, tip)
+
+    def compose_forward_kinematics_expression(
+        self, root: KinematicStructureEntity, tip: KinematicStructureEntity
+    ) -> cas.TransformationMatrix:
+        """
+        :param root: The root KinematicStructureEntity in the kinematic chain.
+            It determines the starting point of the forward kinematics calculation.
+        :param tip: The tip KinematicStructureEntity in the kinematic chain.
+            It determines the endpoint of the forward kinematics calculation.
+        :return: An expression representing the computed forward kinematics of the tip KinematicStructureEntity relative to the root KinematicStructureEntity.
+        """
+        return self._forward_kinematic_manager.compose_expression(root, tip)
 
     def compute_forward_kinematics_np(
         self, root: KinematicStructureEntity, tip: KinematicStructureEntity

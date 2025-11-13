@@ -1,5 +1,6 @@
 import json
 from dataclasses import dataclass, field
+from time import time, sleep
 from typing import Optional
 
 from rclpy.node import Node
@@ -103,23 +104,27 @@ def fetch_world_from_service(
     :param timeout_seconds: Maximum time to wait for service availability and response.
     :return: The fetched modification blocks.
     """
-    # get matching services
-    available_services = node.get_service_names_and_types()
-    matching_services = [
-        service_name
-        for service_name, service_type in available_services
-        if service_name.endswith(service_suffix)
-        and service_type == ["std_srvs/srv/Trigger"]
-    ]
+    deadline = time() + timeout_seconds
+    while time() < deadline:
+        available_services = node.get_service_names_and_types()
+        matching_services = [
+            name
+            for name, srv_type in available_services
+            if name.endswith(service_suffix) and srv_type == ["std_srvs/srv/Trigger"]
+        ]
 
-    # select service
-    if not matching_services:
+        if matching_services:
+            break
+
+        sleep(0.1)
+    else:
         raise NoServiceFoundError(service_suffix)
+    remaining = deadline - time()
 
     chosen_service = matching_services[0]
     client = node.create_client(Trigger, chosen_service)
 
-    service_available = client.wait_for_service(timeout_sec=timeout_seconds)
+    service_available = client.wait_for_service(timeout_sec=remaining)
     if not service_available:
         raise TimeoutError(
             f"WorldFetcher service '{chosen_service}' not available after {timeout_seconds} seconds"

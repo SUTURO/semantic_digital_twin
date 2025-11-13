@@ -481,7 +481,7 @@ class ConstraintBuilder:
         self, active_symbols: List[cas.Symbol]
     ) -> Tuple[cas.Expression, cas.Expression]:
         """Build position and rotation goal constraints."""
-        root_T_tip = self.world._forward_kinematic_manager.compose_expression(
+        root_T_tip = self.world.compose_forward_kinematics_expression(
             self.root, self.tip
         )
 

@@ -170,7 +170,7 @@ def test_compute_fk_np_l_elbow_flex_joint_pr2(pr2_world):
         PrefixedName("l_upper_arm_link")
     )
 
-    fk_expr = pr2_world._forward_kinematic_manager.compose_expression(root, tip)
+    fk_expr = pr2_world.compose_forward_kinematics_expression(root, tip)
     fk_expr_compiled = fk_expr.compile()
     fk2 = fk_expr_compiled(
         symbol_manager.resolve_symbols(*fk_expr_compiled.symbol_parameters)
@@ -418,3 +418,42 @@ def test_pr2_tighten_dof_velocity_limits_of_1dof_connections(pr2_world):
         pr2._world.get_connection_by_name("torso_lift_joint").dof.upper_limits.velocity
         == 0.013
     )
+
+
+def test_split_chain_of_connections(pr2_world):
+    body1 = pr2_world.get_kinematic_structure_entity_by_name("r_gripper_r_finger_link")
+    body2 = pr2_world.get_kinematic_structure_entity_by_name("l_gripper_l_finger_link")
+    result = pr2_world.compute_split_chain_of_connections(root=body1, tip=body2)
+    result1_names = [c.name for c in result[0]]
+    result2_names = [c.name for c in result[1]]
+    chain1 = [
+        PrefixedName(name="r_gripper_r_finger_joint", prefix="pr2"),
+        PrefixedName(name="r_gripper_palm_joint", prefix="pr2"),
+        PrefixedName(name="r_wrist_roll_joint", prefix="pr2"),
+        PrefixedName(name="r_wrist_flex_joint", prefix="pr2"),
+        PrefixedName(name="r_forearm_joint", prefix="pr2"),
+        PrefixedName(name="r_forearm_roll_joint", prefix="pr2"),
+        PrefixedName(name="r_elbow_flex_joint", prefix="pr2"),
+        PrefixedName(name="r_upper_arm_joint", prefix="pr2"),
+        PrefixedName(name="r_upper_arm_roll_joint", prefix="pr2"),
+        PrefixedName(name="r_shoulder_lift_joint", prefix="pr2"),
+        PrefixedName(name="r_shoulder_pan_joint", prefix="pr2"),
+    ]
+
+    chain2 = [
+        PrefixedName(name="l_shoulder_pan_joint", prefix="pr2"),
+        PrefixedName(name="l_shoulder_lift_joint", prefix="pr2"),
+        PrefixedName(name="l_upper_arm_roll_joint", prefix="pr2"),
+        PrefixedName(name="l_upper_arm_joint", prefix="pr2"),
+        PrefixedName(name="l_elbow_flex_joint", prefix="pr2"),
+        PrefixedName(name="l_forearm_roll_joint", prefix="pr2"),
+        PrefixedName(name="l_forearm_joint", prefix="pr2"),
+        PrefixedName(name="l_wrist_flex_joint", prefix="pr2"),
+        PrefixedName(name="l_wrist_roll_joint", prefix="pr2"),
+        PrefixedName(name="l_force_torque_adapter_joint", prefix="pr2"),
+        PrefixedName(name="l_force_torque_joint", prefix="pr2"),
+        PrefixedName(name="l_gripper_palm_joint", prefix="pr2"),
+        PrefixedName(name="l_gripper_l_finger_joint", prefix="pr2"),
+    ]
+    assert result1_names == chain1
+    assert result2_names == chain2
