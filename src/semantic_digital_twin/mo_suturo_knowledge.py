@@ -34,7 +34,7 @@ from semantic_digital_twin.world_description.shape_collection import ShapeCollec
 from semantic_digital_twin.spatial_computations.raytracer import RayTracer
 
 
-def build_all():
+def loading_environment():
     world = World()
 
     # Collers:
@@ -105,6 +105,16 @@ def build_all():
                                     parent_T_connection_expression=TransformationMatrix.from_xyz_rpy(x=-0.29025, y=1.80,
                                                                                                      z=0.5))
 
+
+    sWall7 = Box(scale=Scale(0.05, 2.27, 1.00), color=gray)
+    visual = ShapeCollection([sWall7])
+    collision = ShapeCollection([sWall7])
+    sWall7_body = Body(name=PrefixedName("sWall7_body"), collision=collision, visual=visual)
+
+    root_C_sWall7 = FixedConnection(parent=root, child=sWall7_body,
+                                    parent_T_connection_expression=TransformationMatrix.from_xyz_rpy(x=-0.29025, y=5.16,
+                                                                                                     z=0.5))
+
     eWall = Box(scale=Scale(4.924, 0.05, 3.00), color=gray)
     visual = ShapeCollection([eWall])
     collision = ShapeCollection([eWall])
@@ -120,14 +130,36 @@ def build_all():
     mWall_body = Body(name=PrefixedName("mWall_body"), collision=collision, visual=visual)
 
     root_C_mWall = FixedConnection(parent=root, child=mWall_body,
-                                   parent_T_connection_expression=TransformationMatrix.from_xyz_rpy(x=2.20975, y=5.13,
+                                   parent_T_connection_expression=TransformationMatrix.from_xyz_rpy(x=2.20975, y=5.00,      # 5.13
                                                                                                     z=0.50))  # 2.13, 3.81, 0.50
 
-    nWAll = ...
+    wWall = Box(scale=Scale(4.449, 0.05, 3.00), color=gray)
+    visual = ShapeCollection([wWall])
+    collision = ShapeCollection([wWall])
+    wWall_body = Body(name=PrefixedName("wWall_body"), collision=collision, visual=visual)
 
-    wWall = ...
+    root_C_wWall = FixedConnection(parent=root, child=wWall_body,
+                                   parent_T_connection_expression=TransformationMatrix.from_xyz_rpy(x=1.9345, y=6.32,
+                                                                                                    z=1.50))
 
-    nwWall = ...
+
+    nWAll = Box(scale=Scale(0.05, 8.04, 3.00), color=gray)
+    visual = ShapeCollection([nWAll])
+    collision = ShapeCollection([nWAll])
+    nWall_body = Body(name=PrefixedName("nWAll_body"), collision=collision, visual=visual)
+
+    root_C_nWall = FixedConnection(parent=root, child=nWall_body,
+                                   parent_T_connection_expression=TransformationMatrix.from_xyz_rpy(x=4.949, y=1.51,
+                                                                                                    z=1.50))
+
+    nwWall = Cylinder(width=1.53, height=3.00, color=gray)
+    visual = ShapeCollection([nwWall])
+    collision = ShapeCollection([nwWall])
+    nwWall_body = Body(name=PrefixedName("nwWall_body"), collision=collision, visual=visual)
+
+    root_C_nwWall = FixedConnection(parent=root, child=nwWall_body,
+                                    parent_T_connection_expression=TransformationMatrix.from_xyz_rpy(x=4.924, y=6.295,
+                                                                                                    z=1.50))
 
     # The Rest:
 
@@ -205,13 +237,22 @@ def build_all():
                                   parent_T_connection_expression=TransformationMatrix.from_xyz_rpy(x=0.05, y=1.48,
                                                                                                    z=0.375))
 
-    # cookingTable = Box(scale=Scale(0.60, 1.20, 0.75),color=red)
-    # visual = ShapeCollection([cookingTable])
-    # collision = ShapeCollection([cookingTable])
-    # cookingTable_body = Body(name=PrefixedName("cookingTable_body"), collision=collision, visual=visual)
-    #
-    # root_C_desk = FixedConnection(parent=root,child=cookingTable_body,
-    #                                 parent_T_connection_expression=TransformationMatrix.from_xyz_rpy(x=0.05, y=1.48, z=0.375))
+    cookingTable = Box(scale=Scale(1.75, 0.64, 0.71),color=wood)
+    visual = ShapeCollection([cookingTable])
+    collision = ShapeCollection([cookingTable])
+    cookingTable_body = Body(name=PrefixedName("cookingTable_body"), collision=collision, visual=visual)
+
+    root_C_cookingTable = FixedConnection(parent=root,child=cookingTable_body,
+                                  parent_T_connection_expression=TransformationMatrix.from_xyz_rpy(x=1.325, y=5.675, z=0.355))
+
+
+    diningTable = Box(scale=Scale(0.73, 1.18, 0.73),color=wood)
+    visual = ShapeCollection([diningTable])
+    collision = ShapeCollection([diningTable])
+    diningTable_body = Body(name=PrefixedName("diningTable_body"), collision=collision, visual=visual)
+
+    root_C_diningTable = FixedConnection(parent=root,child=diningTable_body,
+                                         parent_T_connection_expression=TransformationMatrix.from_xyz_rpy(x=2.59975, y=5.705, z=0.365))
 
     with world.modify_world():
         world.add_body(root)
@@ -228,18 +269,20 @@ def build_all():
         world.add_body(sWall5_body)
         world.add_body(sWall6_body)
         world.add_connection(root_C_sWall6)
+        world.add_connection(root_C_sWall7)
+        world.add_body(sWall7_body)
 
         world.add_connection(root_C_eWall)
         world.add_body(eWall_body)
 
-        # world.add_connection(root_C_nWall)
-        # world.add_body(nWall_body)
+        world.add_connection(root_C_nWall)
+        world.add_body(nWall_body)
 
-        # world.add_connection(root_C_nwWall)
-        # world.add_body(nwWall_body)
+        world.add_connection(root_C_nwWall)
+        world.add_body(nwWall_body)
 
-        # world.add_connection(root_C_wWall)
-        # world.add_body(wWall_body)
+        world.add_connection(root_C_wWall)
+        world.add_body(wWall_body)
 
         world.add_connection(root_C_mWall)
         world.add_body(mWall_body)
@@ -260,8 +303,10 @@ def build_all():
         world.add_body(cabinet_body)
         world.add_connection(root_C_desk)
         world.add_body(desk_body)
-        # world.add_connection(root_C_cookingTable)
-        # world.add_body(cookingTable_body)
+        world.add_connection(root_C_cookingTable)
+        world.add_body(cookingTable_body)
+        world.add_connection(root_C_diningTable)
+        world.add_body(diningTable_body)
 
         return world
 
@@ -275,5 +320,5 @@ def published(world: World):
 
     viz = VizMarkerPublisher(world=world, node=node)
 
-world = build_all()
+world = loading_environment()
 published(world)
