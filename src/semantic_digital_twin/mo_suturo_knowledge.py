@@ -1,37 +1,14 @@
-from semantic_digital_twin.datastructures.prefixed_name import PrefixedName
-from semantic_digital_twin.spatial_types.spatial_types import TransformationMatrix, RotationMatrix
-from semantic_digital_twin.utils import get_semantic_digital_twin_directory_root
 from semantic_digital_twin.world import World
-from semantic_digital_twin.world_description.world_entity import Body
-import os
-from semantic_digital_twin.spatial_types import Point3, Vector3
-from semantic_digital_twin.world_description.shape_collection import ShapeCollection
 from semantic_digital_twin.world_description.geometry import Box, Scale, Sphere, Cylinder, FileMesh, Color
-
-#visulise:
-import logging
-import os
-
-from semantic_digital_twin.adapters.urdf import URDFParser
-from semantic_digital_twin.utils import get_semantic_digital_twin_directory_root
-
 from semantic_digital_twin.adapters.viz_marker import VizMarkerPublisher
 import threading
 import rclpy
-
-import logging
-import math
-import os
-
-from semantic_digital_twin.adapters.urdf import URDFParser
 from semantic_digital_twin.datastructures.prefixed_name import PrefixedName
 from semantic_digital_twin.spatial_types.spatial_types import TransformationMatrix
-from semantic_digital_twin.utils import get_semantic_digital_twin_directory_root
 from semantic_digital_twin.world_description.world_entity import Body
 from semantic_digital_twin.world_description.connections import Connection6DoF, FixedConnection
 from semantic_digital_twin.world_description.geometry import Box, Scale, Color
 from semantic_digital_twin.world_description.shape_collection import ShapeCollection
-from semantic_digital_twin.spatial_computations.raytracer import RayTracer
 
 
 def loading_environment():
@@ -130,8 +107,8 @@ def loading_environment():
     mWall_body = Body(name=PrefixedName("mWall_body"), collision=collision, visual=visual)
 
     root_C_mWall = FixedConnection(parent=root, child=mWall_body,
-                                   parent_T_connection_expression=TransformationMatrix.from_xyz_rpy(x=2.20975, y=5.00,      # 5.13
-                                                                                                    z=0.50))  # 2.13, 3.81, 0.50
+                                   parent_T_connection_expression=TransformationMatrix.from_xyz_rpy(x=2.20975, y=5.00,
+                                                                                                    z=0.50))
 
     wWall = Box(scale=Scale(4.449, 0.05, 3.00), color=gray)
     visual = ShapeCollection([wWall])
@@ -255,58 +232,17 @@ def loading_environment():
                                          parent_T_connection_expression=TransformationMatrix.from_xyz_rpy(x=2.59975, y=5.705, z=0.365))
 
     with world.modify_world():
-        world.add_body(root)
 
-        world.add_connection(root_C_sWall1)
-        world.add_body(sWall1_body)
-        world.add_connection(root_C_sWall2)
-        world.add_body(sWall2_body)
-        world.add_connection(root_C_sWall3)
-        world.add_body(sWall3_body)
-        world.add_connection(root_C_sWall4)
-        world.add_body(sWall4_body)
-        world.add_connection(root_C_sWall5)
-        world.add_body(sWall5_body)
-        world.add_body(sWall6_body)
-        world.add_connection(root_C_sWall6)
-        world.add_connection(root_C_sWall7)
-        world.add_body(sWall7_body)
+        all_body= [root, sWall1_body, sWall2_body, sWall3_body, sWall4_body, sWall5_body, sWall6_body, sWall7_body, eWall_body,nWall_body, nwWall_body, mWall_body,
+                         refrigerator_body, counterTop_body, ovenArea_body, table_body, sofa_body, lowerTable_body, cabinet_body, desk_body, cookingTable_body, diningTable_body]
+        all_connection= [root_C_sWall1, root_C_sWall2, root_C_sWall3, root_C_sWall4, root_C_sWall5, root_C_sWall6, root_C_sWall7, root_C_eWall, root_C_nWall, root_C_nwWall, root_C_wWall, root_C_mWall,
+                   root_C_fridge, root_C_counterTop, root_C_ovenArea, root_C_table, root_C_sofa, root_C_lowerTable, root_C_cabinet, root_C_desk, root_C_cookingTable, root_C_diningTable]
 
-        world.add_connection(root_C_eWall)
-        world.add_body(eWall_body)
+        for i in all_body:
+            world.add_body(i)
 
-        world.add_connection(root_C_nWall)
-        world.add_body(nWall_body)
-
-        world.add_connection(root_C_nwWall)
-        world.add_body(nwWall_body)
-
-        world.add_connection(root_C_wWall)
-        world.add_body(wWall_body)
-
-        world.add_connection(root_C_mWall)
-        world.add_body(mWall_body)
-
-        world.add_connection(root_C_fridge)
-        world.add_body(refrigerator_body)
-        world.add_body(counterTop_body)
-        world.add_connection(root_C_counterTop)
-        world.add_body(ovenArea_body)
-        world.add_connection(root_C_ovenArea)
-        world.add_connection(root_C_table)
-        world.add_body(table_body)
-        world.add_connection(root_C_sofa)
-        world.add_body(sofa_body)
-        world.add_connection(root_C_lowerTable)
-        world.add_body(lowerTable_body)
-        world.add_connection(root_C_cabinet)
-        world.add_body(cabinet_body)
-        world.add_connection(root_C_desk)
-        world.add_body(desk_body)
-        world.add_connection(root_C_cookingTable)
-        world.add_body(cookingTable_body)
-        world.add_connection(root_C_diningTable)
-        world.add_body(diningTable_body)
+        for n in all_connection:
+            world.add_connection(n)
 
         return world
 
