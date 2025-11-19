@@ -18,13 +18,22 @@ black = Color(0, 0, 0)
 gray = Color(0.74, 0.74, 0.74)
 wood = Color(1, 0.827, 0.6078)
 
-def loading_environment_walls():
-    wall_world = World()
+def load_environment():
+    world = World()
+    root = Body(name=PrefixedName("root"))
+
+    with world.modify_world():
+        world.add_body(root)
+
+    build_environment_walls(world)
+    build_environment_furnicher(world)
+
+    return world
+
+def build_environment_walls(world: World):
     all_wall_bodies = []
     all_wall_connections = []
-
-    root = Body(name=PrefixedName("root"))
-    all_wall_bodies.append(root)
+    root = world.root
 
     south_wall1 = Box(scale=Scale(0.05, 1.00, 3.00), color=gray)
     shape_geometry = ShapeCollection([south_wall1])
@@ -134,22 +143,19 @@ def loading_environment_walls():
                                     parent_T_connection_expression=TransformationMatrix.from_xyz_rpy(x=4.924, y=6.295, z=1.50))
     all_wall_connections.append(root_C_north_west_wall)
 
-    with wall_world.modify_world():
+    with world.modify_world():
         for body in all_wall_bodies:
-            wall_world.add_body(body)
+            world.add_body(body)
 
         for conn in all_wall_connections:
-            wall_world.add_connection(conn)
-        return wall_world
+            world.add_connection(conn)
+        return world
 
 
-def loading_environment_elements():
-    elements_world = World()
+def build_environment_furnicher(world: World):
     all_elements_bodies = []
     all_elements_connections = []
-
-    root = Body(name=PrefixedName("root"))
-    all_elements_bodies.append(root)
+    root = world.root
 
     refrigerator = Box(scale=Scale(0.60, 0.658, 1.49), color=white)
     shape_geometry = ShapeCollection([refrigerator])
@@ -242,13 +248,13 @@ def loading_environment_elements():
                                          parent_T_connection_expression=TransformationMatrix.from_xyz_rpy(x=2.59975, y=5.705, z=0.365))
     all_elements_connections.append(root_C_diningTable)
 
-    with elements_world.modify_world():
-        for body in all_elements_bodies:
-            elements_world.add_body(body)
+    with world.modify_world():
+        for body in all_elements_bodies[1:]:
+            world.add_body(body)
 
         for conn in all_elements_connections:
-            elements_world.add_connection(conn)
-        return elements_world
+            world.add_connection(conn)
+        return world
 
 class Publisher:
     def __init__(self, name):
@@ -267,8 +273,5 @@ def published(world: World):
     thread = threading.Thread(target=rclpy.spin, args=(node,), daemon=True)
     thread.start()
 
-world_elements = loading_environment_elements()
-world_walls = loading_environment_walls()
 publisher = Publisher("semantic_digital_twin")
-publisher.publish(world_elements)
-publisher.publish(world_walls)
+publisher.publish(load_environment())
