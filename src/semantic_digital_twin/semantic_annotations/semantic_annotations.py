@@ -197,6 +197,73 @@ class Drink(SemanticAnnotation):
     body: Body
 
 @dataclass(eq=False)
+class Coffee(SemanticAnnotation):       #?????????????
+    body: Body
+
+@dataclass(eq=False)
+class CleaningSupplies(SemanticAnnotation):
+    body: Body
+
+@dataclass(eq=False)
+class TableWare(SemanticAnnotation):
+    body:Body
+
+@dataclass(eq=False)
+class KitchenSupplies(SemanticAnnotation):          # kein body
+    ...
+
+@dataclass(eq=False)
+class DrinkingContainer(SemanticAnnotation):
+    body:Body
+
+@dataclass(eq=False)
+class DrinkingContainer(SemanticAnnotation):
+    body:Body
+
+@dataclass(eq=False)
+class OfficeSupplies(SemanticAnnotation):
+    body:Body
+
+@dataclass(eq=False)
+class CreditCard (SemanticAnnotation):
+    body:Body
+
+@dataclass(eq=False)
+class Ball(SemanticAnnotation):
+    body:Body
+
+@dataclass(eq=False)
+class Tool(SemanticAnnotation):
+    body:Body
+
+@dataclass(eq=False)
+class Toy (SemanticAnnotation):
+    body:Body
+
+@dataclass(eq=False)
+class Washer (SemanticAnnotation):
+    ...
+
+@dataclass(eq=False)
+class Magazine (SemanticAnnotation):
+    body:Body
+
+@dataclass(eq=False)
+class Clothe (SemanticAnnotation):
+    body:Body
+
+@dataclass(eq=False)
+class Timer (SemanticAnnotation):
+    body:Body
+
+
+@dataclass(eq=False)
+class Appliance(SemanticAnnotation):
+    ...
+
+
+# %% Subclasses of Food
+@dataclass(eq=False)
 class Fruit(Food):
     ...
 @dataclass(eq=False)
@@ -207,23 +274,7 @@ class Snack(Food):
     ...
 
 @dataclass(eq=False)
-class GasDrinks(Drink):
-    ...
-@dataclass(eq=False)
-class MilkDrinks(Drink):
-    ...
-
-
-@dataclass(eq=False)
-class CkrackerBox(Snack):       # has instance
-    ...
-
-@dataclass(eq=False)
 class DominoSugarBox(Food):
-    ...
-
-@dataclass(eq=False)
-class JelloBox(Snack):       # has instance
     ...
 
 @dataclass(eq=False)
@@ -231,43 +282,15 @@ class CanFood(Food):        #
     ...
 
 @dataclass(eq=False)
-class SpamPottedMeat(CanFood):
-    ...
-
-@dataclass(eq=False)
-class StarkistTunaFish(CanFood):
-    ...
-
-@dataclass(eq=False)
-class TomatoSoup(CanFood):
-    ...
-
-@dataclass(eq=False)
-class Chips(Snack):
-    ...
-
-@dataclass(eq=False)
 class Conduments(Food):
     ...
 
 @dataclass(eq=False)
-class Mustard(Conduments):
-    ...
-
-@dataclass(eq=False)
-class Mayo(Conduments):
-    ...
-
-@dataclass(eq=False)
-class Ketchep(Conduments):
+class CerealBox(Food):
     ...
 
 
-
-@dataclass(eq=False)
-class Coffee(SemanticAnnotation):       #?????????????
-    body: Body
-
+# %% Subclasses of Fruit
 @dataclass(eq=False)
 class Banana(Fruit):
     ...
@@ -300,6 +323,8 @@ class Orange(Fruit):
 class Plum(Fruit):
     ...
 
+
+# %% Subclasses of Vegetable
 @dataclass(eq=False)
 class Cucumber(Vegetable):
     ...
@@ -308,10 +333,73 @@ class Cucumber(Vegetable):
 class Carrot(Vegetable):
     ...
 
-@dataclass(eq=False)
-class CleaningSupplies(SemanticAnnotation):
-    body: Body
 
+# %% Subclasses of Snack
+@dataclass(eq=False)
+class CkrackerBox(Snack):       # has instance
+    ...
+
+@dataclass(eq=False)
+class JelloBox(Snack):       # has instance
+    ...
+
+@dataclass(eq=False)
+class Chips(Snack):
+    ...
+
+
+# %% Subclasses of CanFood
+@dataclass(eq=False)
+class SpamPottedMeat(CanFood):
+    ...
+
+@dataclass(eq=False)
+class StarkistTunaFish(CanFood):
+    ...
+
+@dataclass(eq=False)
+class TomatoSoup(CanFood):
+    ...
+
+
+# %% Subclasses of Conduments
+@dataclass(eq=False)
+class Mustard(Conduments):
+    ...
+
+@dataclass(eq=False)
+class Mayo(Conduments):
+    ...
+
+@dataclass(eq=False)
+class Ketchep(Conduments):
+    ...
+
+
+# %% Subclasses of Drink
+@dataclass(eq=False)
+class GasDrinks(Drink):
+    ...
+@dataclass(eq=False)
+class MilkDrinks(Drink):
+    ...
+
+
+# %% Subclasses of MilkDrinks
+@dataclass(eq=False)
+class Milk(MilkDrinks):
+    ...
+# %% Subclasses of GasDrink
+@dataclass(eq=False)
+class Cola(GasDrinks):
+    ...
+
+@dataclass(eq=False)
+class Fanta(GasDrinks):
+    ...
+
+
+# %% Subclasses of CleaningSupplies
 @dataclass(eq=False)
 class WindexSrayBottle(CleaningSupplies):
     ...
@@ -324,10 +412,8 @@ class SrubCleanseBottle(CleaningSupplies):
 class ScotchBriteDobieSponge(CleaningSupplies):
     ...
 
-@dataclass(eq=False)
-class KitchenSupplies(SemanticAnnotation):          # kein body
-    ...
 
+# %% Subclasses of KitchenSupplies
 @dataclass(eq=False)
 class PitcherBase(KitchenSupplies):     #aus KitchenSupplies ein body erben??
     body:Body
@@ -342,9 +428,19 @@ class Pitcher(KitchenSupplies):     #aus KitchenSupplies ein body erben??
     pitcher_lid: PitcherLid
 
 @dataclass(eq=False)
-class TableWare(SemanticAnnotation):
+class Spatula(KitchenSupplies):     #aus KitchenSupplies ein body erben??
     body:Body
 
+@dataclass(eq=False)
+class Skillet(KitchenSupplies):     #aus KitchenSupplies ein body erben??
+    body:Body
+
+@dataclass(eq=False)
+class SkilletLid(KitchenSupplies):     #aus KitchenSupplies ein body erben??
+    body:Body
+
+
+# %% Subclasses of TableWare
 @dataclass(eq=False)
 class Plate(TableWare):
     ...
@@ -358,6 +454,16 @@ class Cutlery(TableWare):
     ...
 
 @dataclass(eq=False)
+class TableCloth(TableWare):
+    ...
+
+@dataclass(eq=False)
+class WineGlass(DrinkingContainer and TableWare):        # darf ich das???
+    ...
+
+
+# %% Subclasses of Cutlery
+@dataclass(eq=False)
 class Fork(Cutlery):
     ...
 
@@ -369,42 +475,18 @@ class Spoon(Cutlery):
 class Knife(Cutlery):
     ...
 
-@dataclass(eq=False)
-class Spatula(KitchenSupplies):     #aus KitchenSupplies ein body erben??
-    body:Body
 
+# %% Subclasses of DrinkingContainer
 @dataclass(eq=False)
-class DrinkingContainer(SemanticAnnotation):
-    body:Body
-
-@dataclass(eq=False)
-class WineGlass(DrinkingContainer or TableWare):        # darf ich das???
-    ...
-
-@dataclass(eq=False)
-class Mug(DrinkingContainer):
+class Mug(DrinkingContainer and TableWare):
     ...
 
 @dataclass(eq=False)
 class Bottle(DrinkingContainer):
     ...
 
-@dataclass(eq=False)
-class Skillet(KitchenSupplies):     #aus KitchenSupplies ein body erben??
-    body:Body
 
-@dataclass(eq=False)
-class SkilletLid(KitchenSupplies):     #aus KitchenSupplies ein body erben??
-    body:Body
-
-@dataclass(eq=False)
-class TableCloth(TableWare):
-    ...
-
-@dataclass(eq=False)
-class OfficeSupplies(SemanticAnnotation):
-    body:Body
-
+# %% Subclasses of OfficeSupplies
 @dataclass(eq=False)
 class Scissors(OfficeSupplies):
     ...
@@ -417,10 +499,8 @@ class LargeMarker(OfficeSupplies):
 class SmallMarker(OfficeSupplies):
     ...
 
-@dataclass(eq=False)
-class Tool(SemanticAnnotation):
-    body:Body
 
+# %% Subclasses of Tool
 @dataclass(eq=False)
 class Key(Tool):
     ...
@@ -450,14 +530,6 @@ class Screwdriver(Tool):
     ...
 
 @dataclass(eq=False)
-class PhillipsScrewdriver (Screwdriver):
-    ...
-
-@dataclass(eq=False)
-class FlatScrewdriver (Screwdriver):
-    ...
-
-@dataclass(eq=False)
 class AdjustableWrench (Tool):
     ...
 
@@ -474,13 +546,25 @@ class PowerDrill (Tool):
     ...
 
 @dataclass(eq=False)
-class CreditCard (SemanticAnnotation):
-    body:Body
+class Rope (Tool):
+    ...
 
 @dataclass(eq=False)
-class Ball(SemanticAnnotation):
-    body:Body
+class Chain (Tool):
+    ...
 
+
+# %% Subclasses of Screwdriver
+@dataclass(eq=False)
+class PhillipsScrewdriver (Screwdriver):
+    ...
+
+@dataclass(eq=False)
+class FlatScrewdriver (Screwdriver):
+    ...
+
+
+# %% Subclasses of Ball
 @dataclass(eq=False)
 class MiniSoccerBall (Ball):
     ...
@@ -509,10 +593,8 @@ class GolfBall (Ball):
 class Marble (Ball):
     ...
 
-@dataclass(eq=False)
-class Toy (SemanticAnnotation):
-    body:Body
 
+# %% Subclasses of Toy
 @dataclass(eq=False)
 class MarblesBag (Toy):             # Tüte hat ein body erbt von toy, und jede marble von der List hat ein body
     marbles: List[Marble] = field(default_factory=list)
@@ -530,28 +612,8 @@ class Dice (Toy):
     ...
 
 @dataclass(eq=False)
-class Washer (SemanticAnnotation):
-    ...
-
-@dataclass(eq=False)
-class Rope (Tool):
-    ...
-
-@dataclass(eq=False)
-class Chain (Tool):
-    ...
-
-@dataclass(eq=False)
 class RubicksCube (Toy):
     ...
-
-@dataclass(eq=False)
-class ClearBox (Container):
-    ...
-
-@dataclass(eq=False)
-class BoxLid (Components):
-    body:Body
 
 @dataclass(eq=False)
 class PegHoleTest (Toy):
@@ -565,37 +627,57 @@ class ToyAirplane (Toy):
 class Lego (Toy):
     ...
 
+
+# %% Subclasses of Container
 @dataclass(eq=False)
-class Magazine (SemanticAnnotation):
+class ClearBox (Container):
+    ...
+
+
+# %% Subclasses of Components
+@dataclass(eq=False)
+class BoxLid (Components):
     body:Body
 
 @dataclass(eq=False)
-class Clothe (SemanticAnnotation):
+class SofaBase(Components):
     body:Body
 
+@dataclass(eq=False)
+class SofaBackRest(Components):
+    body:Body
+
+@dataclass(eq=False)
+class SofaArmRest(Components):
+    body:Body
+
+@dataclass(eq=False)
+class HotPlate(Components):
+    body:Body
+
+# %% Subclasses of Clothe
 @dataclass(eq=False)
 class TShirt(Clothe):
     ...
 
+
+# %% Subclasses of furniture
 @dataclass(eq=False)
-class Timer (SemanticAnnotation):
+class Sofa(Furniture):
+    base: SofaBase
+    back_rest: SofaBackRest
+    arm_rest: List[SofaArmRest] = field(default_factory=list, hash=False)
+
+
+# %% Subclasses of Appliance
+@dataclass(eq=False)
+class Cooktop(Appliance):
     body:Body
+    hotplate: List[HotPlate] = field(default_factory=list, hash=False)
 
-
-#Nr. 59 .......
-
-@dataclass(eq=False)
-class Cola(GasDrinks):
-    ...
-
-@dataclass(eq=False)
-class Fanta(GasDrinks):
-    ...
-
-@dataclass(eq=False)
-class Milk(MilkDrinks):
-    ...
-
-@dataclass(eq=False)
-class CerealBox(Food):
-    ...
+@dataclass(unsafe_hash=True)
+class Oven(Appliance):
+    """
+    An oven appliance with a body
+    """
+    body: Body
