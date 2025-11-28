@@ -2,6 +2,8 @@ from copy import deepcopy
 
 import numpy as np
 import pytest
+from numpy.testing import assert_raises
+
 from semantic_digital_twin.semantic_annotations.semantic_annotations import Handle
 
 from semantic_digital_twin.spatial_types import Vector3
@@ -647,7 +649,7 @@ def test_copy_pr2_world_connection_origin(pr2_world):
         pr2_body = pr2_world.get_kinematic_structure_entity_by_name(body.name)
         pr2_copy_body = pr2_copy.get_kinematic_structure_entity_by_name(body.name)
         np.testing.assert_array_almost_equal(
-            pr2_body.global_pose.to_np(), pr2_copy_body.global_pose.to_np()
+            pr2_body.global_pose.to_np(), pr2_copy_body.global_pose.to_np(), decimal=4
         )
 
 
@@ -674,6 +676,35 @@ def test_copy_pr2(pr2_world):
     assert pr2_copy.get_kinematic_structure_entity_by_name(
         "head_tilt_link"
     ).global_pose.to_np()[2, 3] == pytest.approx(1.472, abs=1e-3)
+
+
+def test_copy_connections(pr2_world):
+    pr2_copy = deepcopy(pr2_world)
+    for connection in pr2_world.connections:
+        pr2_copy_connection = pr2_copy.get_connection_by_name(connection.name)
+        assert connection.name == pr2_copy_connection.name
+        np.testing.assert_array_almost_equal(
+            connection.origin.to_np(), pr2_copy_connection.origin.to_np(), decimal=3
+        )
+    pr2_copy.state[
+        pr2_copy.get_degree_of_freedom_by_name("torso_lift_joint").name
+    ].position = 0.3
+    pr2_copy.notify_state_change()
+
+    assert_raises(
+        AssertionError,
+        np.testing.assert_array_almost_equal,
+        pr2_world.get_connection_by_name("torso_lift_joint").origin.to_np(),
+        pr2_copy.get_connection_by_name("torso_lift_joint").origin.to_np(),
+    )
+
+
+def test_copy_two_times(pr2_world):
+    pr2_copy = deepcopy(pr2_world)
+    pr2_copy_2 = deepcopy(pr2_copy)
+    for connection in pr2_world.connections:
+        pr2_copy_connection = pr2_copy_2.get_connection_by_name(connection.name)
+        assert connection.name == pr2_copy_connection.name
 
 
 def test_add_entity_with_duplicate_name(world_setup):

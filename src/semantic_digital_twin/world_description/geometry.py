@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import itertools
+import os
 import tempfile
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, fields
@@ -9,7 +10,9 @@ from functools import cached_property
 import numpy as np
 import trimesh
 import trimesh.exchange.stl
-from krrood.adapters.json_serializer import SubclassJSONSerializer
+from trimesh.visual.texture import TextureVisuals, SimpleMaterial
+from PIL import Image
+from krrood.adapters.json_serializer import SubclassJSONSerializer, JSON_TYPE_NAME
 from random_events.interval import SimpleInterval, Bound, closed
 from random_events.product_algebra import SimpleEvent
 from typing_extensions import Optional, List, Dict, Any, Self, Tuple
@@ -207,6 +210,31 @@ class Mesh(Shape, ABC):
     @abstractmethod
     def _from_json(cls, data: Dict[str, Any], **kwargs) -> Self: ...
 
+    @classmethod
+    def add_uv(cls, mesh: trimesh.Trimesh, uv: np.ndarray) -> trimesh.Trimesh:
+        faces = mesh.faces
+        vertices = mesh.vertices
+        # 1. Expand vertices so each face corner gets its own vertex
+        vertex_indices_expanded = faces.reshape(-1)  # (F*3,)
+        vertices_new = vertices[vertex_indices_expanded]  # (F*3, 3)
+
+        # 2. New faces are just 0..F*3-1 reshaped into triples
+        faces_new = np.arange(len(vertices_new), dtype=np.int64).reshape(-1, 3)
+
+        # 3. Create mesh with expanded vertices
+        mesh = trimesh.Trimesh(vertices=vertices_new, faces=faces_new, process=False)
+        mesh.visual = TextureVisuals(uv=uv)
+        return mesh
+
+    @classmethod
+    def add_texture(
+        cls, mesh: trimesh.Trimesh, texture_file_path: str
+    ) -> trimesh.Trimesh:
+        image = Image.open(texture_file_path)
+        material_name = os.path.splitext(os.path.basename(texture_file_path))[0]
+        mesh.visual.material = SimpleMaterial(name=material_name, image=image)
+        return mesh
+
 
 @dataclass(eq=False)
 class FileMesh(Mesh):
@@ -234,7 +262,7 @@ class FileMesh(Mesh):
             "mesh": self.mesh.to_dict(),
             "scale": self.scale.to_json(),
         }
-        json["type"] = json["type"].replace("FileMesh", "TriangleMesh")
+        json[JSON_TYPE_NAME] = json[JSON_TYPE_NAME].replace("FileMesh", "TriangleMesh")
         return json
 
     @classmethod
@@ -243,6 +271,24 @@ class FileMesh(Mesh):
             f"{cls} does not support loading from JSON due to filenames across different systems."
             f" Use TriangleMesh instead."
         )
+
+    @classmethod
+    def from_spec(
+        cls, file_path: str, texture_file_path: Optional[str] = None, **kwargs
+    ) -> FileMesh:
+        """
+        Create a FileMesh from a file path.
+
+        :param file_path: Path to the mesh file.
+        :param texture_file_path: Optional path to the texture file.
+        :return: FileMesh object.
+        """
+        file_mesh = cls(filename=file_path, **kwargs)
+        if texture_file_path is not None:
+            file_mesh.mesh = cls.add_texture(
+                mesh=file_mesh.mesh, texture_file_path=texture_file_path
+            )
+        return file_mesh
 
 
 @dataclass(eq=False)
@@ -257,11 +303,58 @@ class TriangleMesh(Mesh):
     """
 
     @cached_property
-    def file(self):
-        f = tempfile.NamedTemporaryFile(delete=False)
-        with open(f.name, "w") as fd:
-            fd.write(trimesh.exchange.stl.export_stl_ascii(self.mesh))
+    def file(
+        self, dirname: str = "/tmp", file_type: str = "obj"
+    ) -> tempfile.NamedTemporaryFile:
+        f = tempfile.NamedTemporaryFile(dir=dirname, delete=False)
+        if file_type == "obj":
+            self.mesh.export(f.name, file_type="obj")
+            old_mtl_file = "material.mtl"
+            new_mtl_file = f"{os.path.basename(f.name)}.mtl"
+            old_mtl = os.path.join(dirname, old_mtl_file)
+            new_mtl = os.path.join(dirname, new_mtl_file)
+            if os.path.exists(old_mtl):
+                os.rename(old_mtl, new_mtl)
+            with open(f.name) as f:
+                text = f.read()
+            text = text.replace(old_mtl_file, new_mtl_file)
+            with open(f.name, "w") as f:
+                f.write(text)
+        elif file_type == "stl":
+            self.mesh.export(f.name, file_type="stl")
+        else:
+            raise ValueError(f"Unsupported file type: {file_type}")
         return f
+
+    @classmethod
+    def from_spec(
+        cls,
+        vertices: np.ndarray,
+        faces: np.ndarray,
+        origin: np.ndarray,
+        scale: np.ndarray,
+        uv: Optional[np.ndarray] = None,
+        texture_file_path: Optional[str] = None,
+    ) -> TriangleMesh:
+        """
+        Create a triangle mesh from vertices, faces, origin, and scale.
+
+        :param vertices: Vertices of the mesh.
+        :param faces: Faces of the mesh.
+        :param origin: Origin of the mesh.
+        :param scale: Scale of the mesh.
+        :param uv: Optional UV coordinates.
+        :return: TriangleMesh object.
+        """
+        mesh = trimesh.Trimesh(vertices=vertices, faces=faces)
+        if uv is not None:
+            mesh = cls.add_uv(mesh=mesh, uv=uv)
+        if texture_file_path is not None:
+            mesh = cls.add_texture(mesh=mesh, texture_file_path=texture_file_path)
+
+        origin = TransformationMatrix(data=origin)
+        scale = Scale(x=scale[0], y=scale[1], z=scale[2])
+        return cls(mesh=mesh, origin=origin, scale=scale)
 
     @classmethod
     def _from_json(cls, data: Dict[str, Any], **kwargs) -> TriangleMesh:

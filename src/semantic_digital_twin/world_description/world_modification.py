@@ -13,6 +13,7 @@ from typing_extensions import (
     TYPE_CHECKING,
 )
 
+from .actuators import Actuator
 from .degree_of_freedom import DegreeOfFreedom
 from .world_entity import (
     KinematicStructureEntity,
@@ -318,6 +319,28 @@ class RemoveSemanticAnnotationModification(WorldModelModification):
 
 
 @dataclass
+class AddActuatorModification(WorldModelModification):
+    actuator: Actuator
+
+    @classmethod
+    def from_kwargs(cls, kwargs: Dict[str, Any]):
+        return cls(actuator=kwargs["actuator"])
+
+    def apply(self, world: World):
+        world.add_actuator(self.actuator)
+
+    def to_json(self):
+        return {
+            **super().to_json(),
+            "actuator": self.actuator.to_json(),
+        }
+
+    @classmethod
+    def _from_json(cls, data: Dict[str, Any], **kwargs) -> Self:
+        return cls(actuator=Actuator.from_json(data["actuator"], **kwargs))
+
+
+@dataclass
 class WorldModelModificationBlock(SubclassJSONSerializer):
     """
     A sequence of WorldModelModifications that were applied to the world within one `with world.modify_world()` context.
@@ -342,10 +365,10 @@ class WorldModelModificationBlock(SubclassJSONSerializer):
     @classmethod
     def _from_json(cls, data: Dict[str, Any], **kwargs) -> Self:
         return cls(
-            [
+            modifications=[
                 WorldModelModification.from_json(d, **kwargs)
                 for d in data["modifications"]
-            ]
+            ],
         )
 
     def __iter__(self):

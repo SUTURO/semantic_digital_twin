@@ -1,23 +1,18 @@
 import os.path
 import unittest
 
-try:
-    multiparser_found = True
-    from semantic_digital_twin.adapters.multi_parser import MJCFParser
-except ImportError:
-    multiparser_found = False
+from semantic_digital_twin.adapters.mjcf import MJCFParser
 
 from semantic_digital_twin.world_description.connections import FixedConnection
 
 
-@unittest.skipIf(not multiparser_found, "multiparser could not be imported.")
-class MultiParserTestCase(unittest.TestCase):
+class MjcfParserTestCase(unittest.TestCase):
     mjcf_dir = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), "..", "..", "resources", "mjcf"
     )
     table_xml = os.path.join(mjcf_dir, "table.xml")
     kitchen_xml = os.path.join(mjcf_dir, "kitchen-small.xml")
-    apartment_xml = os.path.join(mjcf_dir, "apartment.xml")
+    apartment_xml = os.path.join(mjcf_dir, "iai_apartment.xml")
     pr2_xml = os.path.join(mjcf_dir, "pr2_kinematic_tree.xml")
 
     def setUp(self):

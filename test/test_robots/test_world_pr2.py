@@ -161,6 +161,30 @@ def test_compute_fk_np_pr2(pr2_world):
     )
 
 
+def test_compute_fk_np_pr2_root_left_hand(pr2_world):
+    tip = pr2_world.root
+    root = pr2_world.get_kinematic_structure_entity_by_name(
+        PrefixedName("l_gripper_tool_frame")
+    )
+
+    connection = pr2_world.get_connections_by_type(OmniDrive)[0]
+    connection.origin = TransformationMatrix.from_xyz_rpy(x=1, yaw=1)
+
+    fk = pr2_world.compute_forward_kinematics_np(root, tip)
+    np.testing.assert_array_almost_equal(
+        fk,
+        np.array(
+            [
+                [0.523, 0.815, 0.247, -1.692],
+                [-0.841, 0.540, 0.0, 0.653],
+                [-0.133, -0.208, 0.968, -0.5],
+                [0.0, 0.0, 0.0, 1.0],
+            ],
+        ),
+        decimal=3,
+    )
+
+
 def test_compute_fk_np_l_elbow_flex_joint_pr2(pr2_world):
     tip = pr2_world.get_kinematic_structure_entity_by_name(
         PrefixedName("l_elbow_flex_link")

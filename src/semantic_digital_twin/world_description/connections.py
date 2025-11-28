@@ -16,6 +16,7 @@ from ..adapters.world_entity_kwargs_tracker import (
 from ..datastructures.prefixed_name import PrefixedName
 from ..datastructures.types import NpMatrix4x4
 from ..spatial_types.derivatives import DerivativeMap
+from .connection_properties import JointDynamics
 
 if TYPE_CHECKING:
     from ..world import World
@@ -144,6 +145,11 @@ class ActiveConnection1DOF(ActiveConnection, ABC):
     Name of a Degree of freedom to control movement along the axis.
     """
 
+    dynamics: JointDynamics = field(default_factory=JointDynamics)
+    """
+    Dynamic properties of the joint.
+    """
+
     def to_json(self) -> Dict[str, Any]:
         result = super().to_json()
         result["axis"] = self.axis.to_np().tolist()
@@ -215,6 +221,8 @@ class ActiveConnection1DOF(ActiveConnection, ABC):
             multiplier=multiplier,
             offset=offset,
             dof_name=dof.name,
+            *args,
+            **kwargs,
         )
 
     def add_to_world(self, world: World):
@@ -309,6 +317,26 @@ class ActiveConnection1DOF(ActiveConnection, ABC):
         self._world.state[self.raw_dof.name].jerk = value / self.multiplier
         self._world.notify_state_change()
 
+    def copy_for_world(self, world: World):
+        (
+            other_parent,
+            other_child,
+            parent_T_connection_expression,
+            connection_T_child_expression,
+        ) = self._find_references_in_world(world)
+
+        return self.__class__(
+            name=PrefixedName(self.name.name, self.name.prefix),
+            parent=other_parent,
+            child=other_child,
+            parent_T_connection_expression=parent_T_connection_expression,
+            connection_T_child_expression=connection_T_child_expression,
+            dof_name=PrefixedName(self.dof_name.name, self.dof_name.prefix),
+            axis=self.axis,
+            multiplier=self.multiplier,
+            offset=self.offset,
+        )
+
 
 @dataclass(eq=False)
 class PrismaticConnection(ActiveConnection1DOF):
@@ -320,7 +348,7 @@ class PrismaticConnection(ActiveConnection1DOF):
         super().add_to_world(world)
 
         translation_axis = self.axis * self.dof.variables.position
-        self._connection_T_child_expression = cas.TransformationMatrix.from_xyz_rpy(
+        self.kinematics = cas.TransformationMatrix.from_xyz_rpy(
             x=translation_axis[0],
             y=translation_axis[1],
             z=translation_axis[2],
@@ -340,12 +368,10 @@ class RevoluteConnection(ActiveConnection1DOF):
     def add_to_world(self, world: World):
         super().add_to_world(world)
 
-        self._connection_T_child_expression = (
-            cas.TransformationMatrix.from_xyz_axis_angle(
-                axis=self.axis,
-                angle=self.dof.variables.position,
-                child_frame=self.child,
-            )
+        self.kinematics = cas.TransformationMatrix.from_xyz_axis_angle(
+            axis=self.axis,
+            angle=self.dof.variables.position,
+            child_frame=self.child,
         )
 
     def __hash__(self):
@@ -460,12 +486,10 @@ class Connection6DoF(Connection):
             z_init=self.qz.variables.position,
             w_init=self.qw.variables.position,
         ).to_rotation_matrix()
-        self._connection_T_child_expression = (
-            cas.TransformationMatrix.from_point_rotation_matrix(
-                point=parent_P_child,
-                rotation_matrix=parent_R_child,
-                child_frame=self.child,
-            )
+        self.kinematics = cas.TransformationMatrix.from_point_rotation_matrix(
+            point=parent_P_child,
+            rotation_matrix=parent_R_child,
+            child_frame=self.child,
         )
 
     @classmethod
@@ -556,6 +580,34 @@ class Connection6DoF(Connection):
         self._world.state[self.qz.name].position = orientation[2]
         self._world.state[self.qw.name].position = orientation[3]
         self._world.notify_state_change()
+
+    def copy_for_world(self, world: World) -> Connection6DoF:
+        """
+        Copies this 6DoF connection for another world. Returns a new connection with references to the given world.
+        :param world: The world to copy this connection for.
+        :return: A copy of this connection for the given world.
+        """
+        (
+            other_parent,
+            other_child,
+            parent_T_connection_expression,
+            connection_T_child_expression,
+        ) = self._find_references_in_world(world)
+
+        return Connection6DoF(
+            name=deepcopy(self.name),
+            parent=other_parent,
+            child=other_child,
+            parent_T_connection_expression=parent_T_connection_expression,
+            connection_T_child_expression=connection_T_child_expression,
+            x_name=deepcopy(self.x_name),
+            y_name=deepcopy(self.y_name),
+            z_name=deepcopy(self.z_name),
+            qx_name=deepcopy(self.qx_name),
+            qy_name=deepcopy(self.qy_name),
+            qz_name=deepcopy(self.qz_name),
+            qw_name=deepcopy(self.qw_name),
+        )
 
 
 @dataclass(eq=False)
@@ -668,8 +720,8 @@ class OmniDrive(ActiveConnection, HasUpdateState):
             pitch=self.pitch.variables.position,
             yaw=0,
         )
-        self._connection_T_child_expression = odom_T_bf @ bf_T_bf_vel @ bf_vel_T_bf
-        self._connection_T_child_expression.child_frame = self.child
+        self.kinematics = odom_T_bf @ bf_T_bf_vel @ bf_vel_T_bf
+        self.kinematics.child_frame = self.child
 
     @classmethod
     def create_with_dofs(
@@ -681,6 +733,8 @@ class OmniDrive(ActiveConnection, HasUpdateState):
         parent_T_connection_expression: Optional[cas.TransformationMatrix] = None,
         translation_velocity_limits: float = 0.6,
         rotation_velocity_limits: float = 0.5,
+        *args,
+        **kwargs,
     ) -> Self:
         """
         Creates an instance of the class with automatically generated degrees of freedom
@@ -757,6 +811,8 @@ class OmniDrive(ActiveConnection, HasUpdateState):
             yaw_name=yaw.name,
             x_velocity_name=x_vel.name,
             y_velocity_name=y_vel.name,
+            *args,
+            **kwargs,
         )
 
     @property
@@ -821,3 +877,32 @@ class OmniDrive(ActiveConnection, HasUpdateState):
         self.x_velocity.has_hardware_interface = value
         self.y_velocity.has_hardware_interface = value
         self.yaw.has_hardware_interface = value
+
+    def copy_for_world(self, world: World) -> OmniDrive:
+        """
+        Copies this OmniDriveConnection for the provided world. This finds the references for the parent and child in
+        the new world and returns a new connection with references to the new parent and child.
+        :param world: The world where the connection is copied.
+        :return: The connection with references to the new parent and child.
+        """
+        (
+            other_parent,
+            other_child,
+            parent_T_connection_expression,
+            connection_T_child_expression,
+        ) = self._find_references_in_world(world)
+
+        return OmniDrive(
+            name=deepcopy(self.name),
+            parent=other_parent,
+            child=other_child,
+            parent_T_connection_expression=parent_T_connection_expression,
+            connection_T_child_expression=connection_T_child_expression,
+            x_name=deepcopy(self.x_name),
+            y_name=deepcopy(self.y_name),
+            roll_name=deepcopy(self.roll_name),
+            pitch_name=deepcopy(self.pitch_name),
+            yaw_name=deepcopy(self.yaw_name),
+            x_velocity_name=deepcopy(self.x_velocity_name),
+            y_velocity_name=deepcopy(self.y_velocity_name),
+        )
